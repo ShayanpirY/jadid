@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  phone         String?
+  role          Role      @default(CLIENT)
+  providerId    String?
+  provider      Provider? @relation(fields: [providerId], references: [id])
+  appointments  Appointment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Provider {
+  id                String      @id @default(cuid())
+  slug              String      @unique
+  businessName      String
+  category          String?
+  bio               String?
+  logoUrl           String?
+  bannerUrl         String?
+  phone             String
+  email             String
+  address           String?
+  instagramUrl      String?
+  telegramUrl       String?
+  googleMapsUrl     String?
+  brandColor        String?     @default("#a855f7")
+  customDomain      String?
+  subscriptionStatus SubscriptionStatus @default(TRIAL)
+  subscriptionTier  SubscriptionTier? @default(ONE_MONTH)
+  subscriptionStart DateTime?
+  subscriptionEnd   DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  users             User[]
+  services          Service[]
+  availability      Availability[]
+  appointments      Appointment[]
+}
+
+model Service {
+  id              String   @id @default(cuid())
+  providerId      String
+  provider        Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  durationMinutes Int      @default(30)
+  price           Int
+  depositAmount   Int?     @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  appointments    Appointment[]
+}
+
+model Availability {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  isClosed   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([providerId, dayOfWeek, startTime])
+}
+
+model Appointment {
+  id            String        @id @default(cuid())
+  providerId    String
+  provider      Provider      @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  serviceId     String
+  service       Service       @relation(fields: [serviceId], references: [id])
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id])
+  customerName  String
+  customerPhone String
+  date          String
+  time          String
+  status        AppointmentStatus @default(CONFIRMED)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum Role {
+  CLIENT
+  PROVIDER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum SubscriptionTier {
+  ONE_MONTH
+  THREE_MONTHS
+  ONE_YEAR
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
