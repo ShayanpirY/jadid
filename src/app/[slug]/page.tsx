@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+eimport { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import BookingClient from "./booking-client";
 
@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: PageProps) {
   }
 
   return {
-    title: `${provider.businessName} - رزرو آنلاین`,
-    description: provider.bio || `رزرو نوبت آنلاین از ${provider.businessName}`,
+    title: `${provider.name} - رزرو آنلاین`,
+    description: provider.description || `رزرو نوبت آنلاین از ${provider.name}`,
   };
 }
 
