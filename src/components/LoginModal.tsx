@@ -1,28 +1,41 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const router = useRouter();
   const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    if (username.trim() === "shayan" && password.trim() === "12345") {
-      login("dr-shayan-piriai", "دکتر شایان پیریایی", "shayan@example.com");
-      if (onClose) onClose();
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 100);
-    } else {
-      setError("نام کاربری یا رمز عبور اشتباه است.");
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        login(data.provider.slug, data.provider.businessName, data.provider.email);
+        if (onClose) onClose();
+        window.location.href = "/dashboard";
+      } else {
+        setError(data.message || "نام کاربری یا رمز عبور اشتباه است");
+      }
+    } catch (err) {
+      console.error("Login submit error:", err);
+      setError("خطا در ارتباط با سرور. لطفاً کنسول را بررسی کنید.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,9 +86,10 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
 
           <button
             type="submit"
-            className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-fuchsia-600/20 text-sm mt-2"
+            disabled={loading}
+            className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-800 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-fuchsia-600/20 text-sm mt-2"
           >
-            ورود به داشبورد کسب‌وکار
+            {loading ? "در حال ورود..." : "ورود به داشبورد کسب‌وکار"}
           </button>
         </form>
 

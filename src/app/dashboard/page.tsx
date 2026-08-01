@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ import {
   Users,
   Link as LinkIcon,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
 type Tab = "appointments" | "settings" | "subscription";
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -47,24 +46,6 @@ interface Appointment {
   status: AppointmentStatus;
 }
 
-interface ProviderData {
-  id: string;
-  businessName: string;
-  slug: string;
-  email: string;
-  phone: string;
-  bio: string | null;
-  category: string | null;
-  address: string | null;
-  brandColor: string | null;
-  subscriptionStatus: string;
-  subscriptionTier: string | null;
-  subscriptionStart: Date | null;
-  subscriptionEnd: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 const STATUS_CONFIG: Record<AppointmentStatus, { label: string; variant: "warning" | "success" | "error" }> = {
   PENDING: { label: "در انتظار", variant: "warning" },
   CONFIRMED: { label: "تایید شده", variant: "success" },
@@ -75,60 +56,56 @@ const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("fa-IR").format(amount) + " تومان";
 };
 
+const MOCK_APPOINTMENTS: Appointment[] = [
+  {
+    id: "1",
+    customerName: "علی رضایی",
+    customerPhone: "۰۹۱۲۳۴۵۶۷۸۹",
+    service: "مشاوره تخصصی",
+    date: "۱۴۰۵/۰۵/۱۶",
+    time: "۱۵:۰۰",
+    status: "CONFIRMED",
+  },
+  {
+    id: "2",
+    customerName: "سارا کریمی",
+    customerPhone: "۰۹۱۳۴۵۶۷۸۹۰",
+    service: "جلسه پیگیری",
+    date: "۱۴۰۵/۰۵/۱۷",
+    time: "۱۰:۳۰",
+    status: "PENDING",
+  },
+  {
+    id: "3",
+    customerName: "رضا احمدی",
+    customerPhone: "۰۹۱۴۵۶۷۸۹۰۱",
+    service: "مشاوره تخصصی",
+    date: "۱۴۰۵/۰۵/۱۵",
+    time: "۱۱:۰۰",
+    status: "CONFIRMED",
+  },
+  {
+    id: "4",
+    customerName: "مریم حسینی",
+    customerPhone: "۰۹۱۵۶۷۸۹۰۱۲",
+    service: "جلسه پیگیری",
+    date: "۱۴۰۵/۰۵/۱۸",
+    time: "۰۹:۰۰",
+    status: "CANCELLED",
+  },
+];
+
 export default function BusinessDashboard() {
   const router = useRouter();
-  const { session, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("appointments");
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [provider, setProvider] = useState<ProviderData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState<Appointment[]>(MOCK_APPOINTMENTS);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | AppointmentStatus>("ALL");
   const [copied, setCopied] = useState(false);
 
-  const providerSlug = session?.slug || "";
-
-  useEffect(() => {
-    if (!session) {
-      router.push("/login");
-      return;
-    }
-
-    async function fetchData() {
-      try {
-        const res = await fetch(`/api/dashboard/${providerSlug}`);
-        if (res.ok) {
-          const data = await res.json();
-          setProvider(data.provider);
-          const mappedAppointments = (data.appointments || []).map((apt: any) => ({
-            id: apt.id,
-            customerName: apt.customerName,
-            customerPhone: apt.customerPhone,
-            service: apt.service?.title || apt.service,
-            date: apt.date,
-            time: apt.time,
-            status: apt.status,
-          }));
-          setAppointments(mappedAppointments);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [session, providerSlug, router]);
-
-  const daysRemaining = useMemo(() => {
-    if (!provider?.subscriptionEnd) return null;
-    const end = new Date(provider.subscriptionEnd);
-    const now = new Date();
-    const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    return Math.max(0, diff);
-  }, [provider]);
-
-  const bookingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/book/${providerSlug}`;
+  const businessName = "مجموعه شایان";
+  const slug = "shayan";
+  const bookingUrl = `https://jadid-delta.vercel.app/book/${slug}`;
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter((apt) => {
@@ -143,20 +120,15 @@ export default function BusinessDashboard() {
 
   const stats = useMemo(() => {
     const total = appointments.length;
-    const today = appointments.filter((a) => a.date === "۱۴۰۳/۰۸/۱۵").length;
+    const today = appointments.filter((a) => a.date === "۱۴۰۵/۰۵/۱۵").length;
     const pending = appointments.filter((a) => a.status === "PENDING").length;
     return [
       { label: "کل رزروها", value: total.toString(), icon: <CalendarCheck className="w-5 h-5" />, color: "purple" },
       { label: "امروز", value: today.toString(), icon: <Clock className="w-5 h-5" />, color: "cyan" },
       { label: "در انتظار", value: pending.toString(), icon: <AlertCircle className="w-5 h-5" />, color: "amber" },
-      {
-        label: "روزهای باقی‌مانده",
-        value: daysRemaining !== null ? daysRemaining.toString() : "—",
-        icon: <Crown className="w-5 h-5" />,
-        color: daysRemaining && daysRemaining > 7 ? "emerald" : daysRemaining && daysRemaining > 0 ? "amber" : "pink",
-      },
+      { label: "روزهای باقی‌مانده", value: "۳۶۵", icon: <Crown className="w-5 h-5" />, color: "emerald" },
     ];
-  }, [appointments, daysRemaining]);
+  }, [appointments]);
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(bookingUrl);
@@ -182,24 +154,16 @@ export default function BusinessDashboard() {
     { id: "subscription" as Tab, label: "اشتراک", icon: <CreditCard className="w-4 h-4" /> },
   ];
 
-  if (loading) {
-    return (
-      <div dir="rtl" className="min-h-screen bg-[#0d0e15] text-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div dir="rtl" className="min-h-screen bg-[#0d0e15] text-white space-y-8 py-12 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-4">
-            <Avatar name={session?.businessName || "کسب‌وکار"} size="lg" />
+            <Avatar name={businessName} size="lg" />
             <div>
               <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
-                خوش آمدید، {session?.businessName || "کاربر"} 👋
+                خوش آمدید، {businessName} 👋
               </h1>
               <p className="text-slate-400 mt-1">مدیریت رزرو و اشتراک</p>
             </div>
@@ -209,9 +173,6 @@ export default function BusinessDashboard() {
             <Button variant="ghost" onClick={() => router.push("/dashboard/profile")} className="flex items-center gap-2">
               <Building2 className="w-4 h-4" />
               پروفایل
-            </Button>
-            <Button variant="ghost" onClick={logout} className="flex items-center gap-2 text-pink-400 hover:text-pink-300">
-              خروج
             </Button>
           </div>
         </div>
@@ -586,37 +547,15 @@ export default function BusinessDashboard() {
                   <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                     <div>
                       <p className="text-sm text-slate-400">پلان فعلی</p>
-                      <p className="text-lg font-bold text-slate-200">
-                        {provider?.subscriptionTier === "ONE_MONTH" && "۱ ماهه"}
-                        {provider?.subscriptionTier === "THREE_MONTHS" && "۳ ماهه"}
-                        {provider?.subscriptionTier === "ONE_YEAR" && "سالانه"}
-                        {!provider?.subscriptionTier && "تعیین نشده"}
-                      </p>
+                      <p className="text-lg font-bold text-slate-200">یک‌ساله</p>
                     </div>
-                    <Badge
-                      variant={
-                        provider?.subscriptionStatus === "ACTIVE"
-                          ? "success"
-                          : provider?.subscriptionStatus === "EXPIRING_SOON"
-                          ? "warning"
-                          : "error"
-                      }
-                    >
-                      {provider?.subscriptionStatus === "ACTIVE" && "فعال"}
-                      {provider?.subscriptionStatus === "EXPIRING_SOON" && "در حال انقضا"}
-                      {provider?.subscriptionStatus === "EXPIRED" && "منقضی شده"}
-                      {provider?.subscriptionStatus === "TRIAL" && "دوره آزمایشی"}
-                    </Badge>
+                    <Badge variant="success">فعال</Badge>
                   </div>
 
                   <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                     <div>
                       <p className="text-sm text-slate-400">تاریخ انقضا</p>
-                      <p className="text-lg font-bold text-slate-200">
-                        {provider?.subscriptionEnd
-                          ? new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long", day: "numeric" }).format(new Date(provider.subscriptionEnd))
-                          : "تعیین نشده"}
-                      </p>
+                      <p className="text-lg font-bold text-slate-200">۱۴۰۶/۰۵/۱۵</p>
                     </div>
                     <CalendarCheck className="w-5 h-5 text-slate-400" />
                   </div>
@@ -634,7 +573,7 @@ export default function BusinessDashboard() {
                         key={plan.value}
                         onClick={() => {}}
                         className={`p-4 rounded-xl border text-center transition-all duration-200 ${
-                          provider?.subscriptionTier === plan.value
+                          plan.value === "ONE_YEAR"
                             ? "border-purple-500 bg-purple-500/10"
                             : "border-white/10 bg-white/5 hover:bg-white/10"
                         }`}

@@ -96,6 +96,11 @@ export default function HomePage() {
                   دموی نوبت‌گیری
                 </Button>
               </a>
+              <a href="/dashboard">
+                <Button size="sm" variant="ghost" className="hidden sm:inline-flex">
+                  ورود مستقیم به داشبورد (تست)
+                </Button>
+              </a>
               <Button size="sm" variant="ghost" onClick={() => setAuthOpen(true)} className="hidden sm:inline-flex">
                 ورود / ثبت‌نام
               </Button>
