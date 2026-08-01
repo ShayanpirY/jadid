@@ -106,16 +106,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     setIsLoading(true);
     setError("");
     await new Promise((r) => setTimeout(r, 1000));
-
-    if (data.email === "pir0918021@gmail.com" && data.password === "Shayan021") {
-      setIsLoading(false);
-      resetAdmin();
-      onClose();
-      onLoginSuccess?.("ADMIN", "/admin/dashboard");
-    } else {
-      setIsLoading(false);
-      setError("ایمیل یا رمز عبور اشتباه است");
-    }
+    setIsLoading(false);
+    setError("دسترسی به این بخش暂时 unavailable است.");
   };
 
   const switchTab = (tab: AuthTab) => {
@@ -221,21 +213,23 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                     )}
                     <div>
                       <Label required>ایمیل</Label>
-                      <Input
-                        {...registerUser("email")}
-                        type="email"
-                        placeholder="example@email.com"
-                        error={userErrors.email?.message}
-                      />
+                    <Input
+                      {...registerUser("email")}
+                      type="email"
+                      placeholder="example@email.com"
+                      error={userErrors.email?.message}
+                      autoComplete="email"
+                    />
                     </div>
                     <div>
                       <Label required>رمز عبور</Label>
-                      <Input
-                        {...registerUser("password")}
-                        type="password"
-                        placeholder="••••••••"
-                        error={userErrors.password?.message}
-                      />
+                    <Input
+                      {...registerUser("password")}
+                      type="password"
+                      placeholder="••••••••"
+                      error={userErrors.password?.message}
+                      autoComplete="new-password"
+                    />
                     </div>
                     {!isLogin && (
                       <div>
@@ -289,6 +283,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                         {...registerBusiness("username")}
                         placeholder="نام کاربری"
                         error={businessErrors.username?.message}
+                        autoComplete="off"
                       />
                     </div>
                     <div>
@@ -298,6 +293,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                         type="password"
                         placeholder="••••••••"
                         error={businessErrors.password?.message}
+                        autoComplete="new-password"
                       />
                     </div>
 
@@ -332,8 +328,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                       <Input
                         {...registerAdmin("email")}
                         type="email"
-                        placeholder="pir0918021@gmail.com"
+                        placeholder="admin@example.com"
                         error={adminErrors.email?.message}
+                        autoComplete="email"
                       />
                     </div>
                     <div>
@@ -343,6 +340,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                         type="password"
                         placeholder="••••••••"
                         error={adminErrors.password?.message}
+                        autoComplete="new-password"
                       />
                     </div>
 
@@ -356,12 +354,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                       {isLoading ? "در حال بررسی..." : "ورود به پنل مدیریت"}
                     </Button>
                   </form>
-
-                  <div className="text-center">
-                    <p className="text-xs text-slate-500">
-                      اطلاعات ورود مدیر: pir0918021@gmail.com / Shayan021
-                    </p>
-                  </div>
                 </div>
               )}
             </GlassCard>

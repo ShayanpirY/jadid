@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +28,11 @@ import {
   Mail,
   Globe,
   ChevronLeft,
+  Building2,
+  Users,
+  Link as LinkIcon,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Tab = "appointments" | "settings" | "subscription";
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -42,53 +47,23 @@ interface Appointment {
   status: AppointmentStatus;
 }
 
-const MOCK_APPOINTMENTS: Appointment[] = [
-  {
-    id: "1",
-    customerName: "علی محمدی",
-    customerPhone: "۰۹۱۲۳۴۵۶۷۸۹",
-    service: "مشاوره پوستی",
-    date: "۱۴۰۳/۰۸/۱۵",
-    time: "۱۰:۰۰",
-    status: "PENDING",
-  },
-  {
-    id: "2",
-    customerName: "سارا احمدی",
-    customerPhone: "۰۹۱۳۴۵۶۷۸۹۰",
-    service: "جلسه لیزر",
-    date: "۱۴۰۳/۰۸/۱۵",
-    time: "۱۱:۳۰",
-    status: "CONFIRMED",
-  },
-  {
-    id: "3",
-    customerName: "رضا کریمی",
-    customerPhone: "۰۹۱۴۵۶۷۸۹۰۱",
-    service: "ورمی‌پلاسی لیپو",
-    date: "۱۴۰۳/۰۸/۱۶",
-    time: "۰۹:۰۰",
-    status: "PENDING",
-  },
-  {
-    id: "4",
-    customerName: "مریم رضایی",
-    customerPhone: "۰۹۱۵۶۷۸۹۰۱۲",
-    service: "مشاوره پوستی",
-    date: "۱۴۰۳/۰۸/۱۴",
-    time: "۱۴:۰۰",
-    status: "CANCELLED",
-  },
-  {
-    id: "5",
-    customerName: "امیر حسینی",
-    customerPhone: "۰۹۱۶۷۸۹۰۱۲۳",
-    service: "جلسه لیزر",
-    date: "۱۴۰۳/۰۸/۱۷",
-    time: "۱۵:۳۰",
-    status: "CONFIRMED",
-  },
-];
+interface ProviderData {
+  id: string;
+  businessName: string;
+  slug: string;
+  email: string;
+  phone: string;
+  bio: string | null;
+  category: string | null;
+  address: string | null;
+  brandColor: string | null;
+  subscriptionStatus: string;
+  subscriptionTier: string | null;
+  subscriptionStart: Date | null;
+  subscriptionEnd: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const STATUS_CONFIG: Record<AppointmentStatus, { label: string; variant: "warning" | "success" | "error" }> = {
   PENDING: { label: "در انتظار", variant: "warning" },
@@ -101,28 +76,59 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function BusinessDashboard() {
+  const router = useRouter();
+  const { session, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("appointments");
-  const [appointments, setAppointments] = useState<Appointment[]>(MOCK_APPOINTMENTS);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [provider, setProvider] = useState<ProviderData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | AppointmentStatus>("ALL");
   const [copied, setCopied] = useState(false);
 
-  // Settings state
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("18:00");
-  const [sessionDuration, setSessionDuration] = useState(45);
-  const [breakDuration, setBreakDuration] = useState(10);
-  const [smsEnabled, setSmsEnabled] = useState(true);
-  const [emailEnabled, setEmailEnabled] = useState(true);
+  const providerSlug = session?.slug || "";
 
-  // Subscription state
-  const [subscription, setSubscription] = useState({
-    status: "ACTIVE" as "ACTIVE" | "EXPIRING_SOON" | "EXPIRED",
-    plan: "THREE_MONTHS" as "ONE_MONTH" | "THREE_MONTHS" | "ONE_YEAR",
-    endDate: "۱۴۰۳/۱۱/۱۵",
-  });
+  useEffect(() => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
 
-  const bookingUrl = "https://nobatdahi.ir/booking/dr-maryam";
+    async function fetchData() {
+      try {
+        const res = await fetch(`/api/dashboard/${providerSlug}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProvider(data.provider);
+          const mappedAppointments = (data.appointments || []).map((apt: any) => ({
+            id: apt.id,
+            customerName: apt.customerName,
+            customerPhone: apt.customerPhone,
+            service: apt.service?.title || apt.service,
+            date: apt.date,
+            time: apt.time,
+            status: apt.status,
+          }));
+          setAppointments(mappedAppointments);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [session, providerSlug, router]);
+
+  const daysRemaining = useMemo(() => {
+    if (!provider?.subscriptionEnd) return null;
+    const end = new Date(provider.subscriptionEnd);
+    const now = new Date();
+    const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
+  }, [provider]);
+
+  const bookingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/book/${providerSlug}`;
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter((apt) => {
@@ -144,13 +150,13 @@ export default function BusinessDashboard() {
       { label: "امروز", value: today.toString(), icon: <Clock className="w-5 h-5" />, color: "cyan" },
       { label: "در انتظار", value: pending.toString(), icon: <AlertCircle className="w-5 h-5" />, color: "amber" },
       {
-        label: "وضعیت اشتراک",
-        value: subscription.status === "ACTIVE" ? "فعال" : subscription.status === "EXPIRING_SOON" ? "در حال انقضا" : "منقضی",
+        label: "روزهای باقی‌مانده",
+        value: daysRemaining !== null ? daysRemaining.toString() : "—",
         icon: <Crown className="w-5 h-5" />,
-        color: subscription.status === "ACTIVE" ? "emerald" : subscription.status === "EXPIRING_SOON" ? "amber" : "pink",
+        color: daysRemaining && daysRemaining > 7 ? "emerald" : daysRemaining && daysRemaining > 0 ? "amber" : "pink",
       },
     ];
-  }, [appointments, subscription.status]);
+  }, [appointments, daysRemaining]);
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(bookingUrl);
@@ -176,27 +182,56 @@ export default function BusinessDashboard() {
     { id: "subscription" as Tab, label: "اشتراک", icon: <CreditCard className="w-4 h-4" /> },
   ];
 
+  if (loading) {
+    return (
+      <div dir="rtl" className="min-h-screen bg-[#0d0e15] text-white flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div dir="rtl" className="min-h-screen bg-[#0d0e15] text-white space-y-8 py-12 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-4">
-            <Avatar name="دکتر مریم زمانی" size="lg" />
+            <Avatar name={session?.businessName || "کسب‌وکار"} size="lg" />
             <div>
               <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
-                دکتر مریم زمانی
+                خوش آمدید، {session?.businessName || "کاربر"} 👋
               </h1>
-              <p className="text-slate-400 mt-1">متخصص پوست و زیبایی</p>
+              <p className="text-slate-400 mt-1">مدیریت رزرو و اشتراک</p>
             </div>
           </div>
 
-          {/* Booking URL */}
-          <GlassCard className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-1 max-w-2xl">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => router.push("/dashboard/profile")} className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              پروفایل
+            </Button>
+            <Button variant="ghost" onClick={logout} className="flex items-center gap-2 text-pink-400 hover:text-pink-300">
+              خروج
+            </Button>
+          </div>
+        </div>
+
+        {/* Booking Link Card */}
+        <GlassCard className="p-6 mb-8 border-purple-500/20">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+              <LinkIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-200">لینک اختصاصی رزرو</h3>
+              <p className="text-sm text-slate-400">این لینک را به مشتریان خود بدهید تا نوبت خود را ثبت کنند</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <Globe className="w-5 h-5 text-purple-400 flex-shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs text-slate-400 mb-1">لینک رزرو اختصاصی</p>
                 <p className="text-sm text-slate-200 font-mono truncate">{bookingUrl}</p>
               </div>
             </div>
@@ -212,8 +247,8 @@ export default function BusinessDashboard() {
                 </Button>
               </a>
             </div>
-          </GlassCard>
-        </div>
+          </div>
+        </GlassCard>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -427,8 +462,8 @@ export default function BusinessDashboard() {
                     <Label>ساعت شروع</Label>
                     <Input
                       type="time"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
+                      value="09:00"
+                      onChange={(e) => {}}
                       className="mt-1"
                     />
                   </div>
@@ -436,8 +471,8 @@ export default function BusinessDashboard() {
                     <Label>ساعت پایان</Label>
                     <Input
                       type="time"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
+                      value="18:00"
+                      onChange={(e) => {}}
                       className="mt-1"
                     />
                   </div>
@@ -460,8 +495,8 @@ export default function BusinessDashboard() {
                     <Label>طول هر سانس (دقیقه)</Label>
                     <Input
                       type="number"
-                      value={sessionDuration}
-                      onChange={(e) => setSessionDuration(Number(e.target.value))}
+                      value={45}
+                      onChange={(e) => {}}
                       className="mt-1"
                       min={15}
                       max={180}
@@ -471,8 +506,8 @@ export default function BusinessDashboard() {
                     <Label>زمان استراحت بین سانس‌ها (دقیقه)</Label>
                     <Input
                       type="number"
-                      value={breakDuration}
-                      onChange={(e) => setBreakDuration(Number(e.target.value))}
+                      value={10}
+                      onChange={(e) => {}}
                       className="mt-1"
                       min={0}
                       max={60}
@@ -502,16 +537,10 @@ export default function BusinessDashboard() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setSmsEnabled(!smsEnabled)}
-                      className={`w-12 h-6 rounded-full transition-all duration-300 ${
-                        smsEnabled ? "bg-purple-600" : "bg-white/10"
-                      }`}
+                      onClick={() => {}}
+                      className={`w-12 h-6 rounded-full transition-all duration-300 bg-purple-600`}
                     >
-                      <div
-                        className={`w-5 h-5 rounded-full bg-white shadow-lg transition-all duration-300 ${
-                          smsEnabled ? "translate-x-6" : "translate-x-0.5"
-                        }`}
-                      />
+                      <div className={`w-5 h-5 rounded-full bg-white shadow-lg transition-all duration-300 translate-x-6`} />
                     </button>
                   </div>
                   <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
@@ -523,16 +552,10 @@ export default function BusinessDashboard() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setEmailEnabled(!emailEnabled)}
-                      className={`w-12 h-6 rounded-full transition-all duration-300 ${
-                        emailEnabled ? "bg-purple-600" : "bg-white/10"
-                      }`}
+                      onClick={() => {}}
+                      className={`w-12 h-6 rounded-full transition-all duration-300 bg-purple-600`}
                     >
-                      <div
-                        className={`w-5 h-5 rounded-full bg-white shadow-lg transition-all duration-300 ${
-                          emailEnabled ? "translate-x-6" : "translate-x-0.5"
-                        }`}
-                      />
+                      <div className={`w-5 h-5 rounded-full bg-white shadow-lg transition-all duration-300 translate-x-6`} />
                     </button>
                   </div>
                 </div>
@@ -564,30 +587,36 @@ export default function BusinessDashboard() {
                     <div>
                       <p className="text-sm text-slate-400">پلان فعلی</p>
                       <p className="text-lg font-bold text-slate-200">
-                        {subscription.plan === "ONE_MONTH" && "۱ ماهه"}
-                        {subscription.plan === "THREE_MONTHS" && "۳ ماهه"}
-                        {subscription.plan === "ONE_YEAR" && "سالانه"}
+                        {provider?.subscriptionTier === "ONE_MONTH" && "۱ ماهه"}
+                        {provider?.subscriptionTier === "THREE_MONTHS" && "۳ ماهه"}
+                        {provider?.subscriptionTier === "ONE_YEAR" && "سالانه"}
+                        {!provider?.subscriptionTier && "تعیین نشده"}
                       </p>
                     </div>
                     <Badge
                       variant={
-                        subscription.status === "ACTIVE"
+                        provider?.subscriptionStatus === "ACTIVE"
                           ? "success"
-                          : subscription.status === "EXPIRING_SOON"
+                          : provider?.subscriptionStatus === "EXPIRING_SOON"
                           ? "warning"
                           : "error"
                       }
                     >
-                      {subscription.status === "ACTIVE" && "فعال"}
-                      {subscription.status === "EXPIRING_SOON" && "در حال انقضا"}
-                      {subscription.status === "EXPIRED" && "منقضی شده"}
+                      {provider?.subscriptionStatus === "ACTIVE" && "فعال"}
+                      {provider?.subscriptionStatus === "EXPIRING_SOON" && "در حال انقضا"}
+                      {provider?.subscriptionStatus === "EXPIRED" && "منقضی شده"}
+                      {provider?.subscriptionStatus === "TRIAL" && "دوره آزمایشی"}
                     </Badge>
                   </div>
 
                   <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                     <div>
                       <p className="text-sm text-slate-400">تاریخ انقضا</p>
-                      <p className="text-lg font-bold text-slate-200">{subscription.endDate}</p>
+                      <p className="text-lg font-bold text-slate-200">
+                        {provider?.subscriptionEnd
+                          ? new Intl.DateTimeFormat("fa-IR", { year: "numeric", month: "long", day: "numeric" }).format(new Date(provider.subscriptionEnd))
+                          : "تعیین نشده"}
+                      </p>
                     </div>
                     <CalendarCheck className="w-5 h-5 text-slate-400" />
                   </div>
@@ -603,9 +632,9 @@ export default function BusinessDashboard() {
                     ].map((plan) => (
                       <button
                         key={plan.value}
-                        onClick={() => setSubscription((prev) => ({ ...prev, plan: plan.value as any }))}
+                        onClick={() => {}}
                         className={`p-4 rounded-xl border text-center transition-all duration-200 ${
-                          subscription.plan === plan.value
+                          provider?.subscriptionTier === plan.value
                             ? "border-purple-500 bg-purple-500/10"
                             : "border-white/10 bg-white/5 hover:bg-white/10"
                         }`}

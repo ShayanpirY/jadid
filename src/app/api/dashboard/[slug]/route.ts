@@ -14,7 +14,7 @@ export async function GET(
         services: { where: { isActive: true }, orderBy: { createdAt: "asc" } },
         appointments: {
           orderBy: { createdAt: "desc" },
-          take: 10,
+          take: 50,
         },
       },
     });
@@ -23,7 +23,7 @@ export async function GET(
       return NextResponse.json({ error: "یافت نشد" }, { status: 404 });
     }
 
-    const { ...providerData } = provider;
+    const { password, ...providerData } = provider as any;
 
     return NextResponse.json({
       provider: providerData,

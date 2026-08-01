@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,8 +16,11 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
     setError("");
 
     if (username.trim() === "shayan" && password.trim() === "12345") {
+      login("dr-shayan-piriai", "دکتر شایان پیریایی", "shayan@example.com");
       if (onClose) onClose();
-      router.push("/booking/dr-shayan-piriai");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
     } else {
       setError("نام کاربری یا رمز عبور اشتباه است.");
     }
@@ -49,6 +54,7 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
               onChange={(e) => setUsername(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-fuchsia-500 focus:outline-none"
               dir="ltr"
+              autoComplete="off"
             />
           </div>
 
@@ -61,6 +67,7 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-fuchsia-500 focus:outline-none"
               dir="ltr"
+              autoComplete="new-password"
             />
           </div>
 
