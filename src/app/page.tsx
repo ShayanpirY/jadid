@@ -74,7 +74,7 @@ export default function HomePage() {
   const [authOpen, setAuthOpen] = useState(false);
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#0d0e15] text-white space-y-24 py-12 px-4 md:px-8">
+    <main dir="rtl" className="min-h-screen bg-[#0d0e15] text-white">
       {/* هدر */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0d0e15]/80 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,8 +108,8 @@ export default function HomePage() {
       </header>
 
       {/* بخش معرفی Hero */}
-      <section className="max-w-7xl mx-auto">
-        <div className="text-center max-w-4xl mx-auto mb-20">
+      <section className="max-w-7xl mx-auto pt-16 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
             <Sparkles className="w-4 h-4 text-purple-400" />
             <span className="text-sm text-purple-300">پلتفرم رزرو آنلاین</span>
@@ -141,7 +141,7 @@ export default function HomePage() {
       </section>
 
       {/* بخش ویژگی‌ها */}
-      <section id="features" className="max-w-7xl mx-auto">
+      <section id="features" className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 mb-4">
             ویژگی‌های اصلی
@@ -158,12 +158,16 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <GlassCard className="p-6 h-full hover:shadow-xl transition-all duration-300" hover>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white mb-4 shadow-lg">
-                  {feature.icon}
+              <GlassCard className="p-6 hover:shadow-xl transition-all duration-300" hover>
+                <div className="flex flex-col gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white shadow-lg flex-shrink-0">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-200">{feature.title}</h3>
+                    <p className="text-sm text-slate-400 mt-1">{feature.description}</p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-slate-200 mb-2">{feature.title}</h3>
-                <p className="text-sm text-slate-400">{feature.description}</p>
               </GlassCard>
             </motion.div>
           ))}
@@ -171,8 +175,8 @@ export default function HomePage() {
       </section>
 
       {/* بخش اشتراک */}
-      <section id="pricing" className="max-w-7xl mx-auto py-20">
-        <div className="text-center mb-12">
+      <section id="pricing" className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 mb-4">
             اشتراک
           </h2>
@@ -187,22 +191,26 @@ export default function HomePage() {
               transition={{ delay: index * 0.1 }}
             >
               <GlassCard
-                className={`p-6 h-full ${plan.popular ? "border-2 border-purple-500 shadow-xl shadow-purple-500/20" : ""}`}
+                className={`p-6 h-full relative ${plan.popular ? "border-2 border-purple-500 shadow-xl shadow-purple-500/20" : ""}`}
                 hover
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold shadow-lg">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold shadow-lg z-10">
                     ⭐ پرفروش‌ترین
                   </div>
                 )}
-                <h3 className="text-lg font-bold text-slate-200">{plan.name}</h3>
-                <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mt-4">
-                  {plan.price}
-                  <span className="text-sm font-normal text-slate-400 mr-1">{plan.period}</span>
-                </p>
-                <Button className="w-full mt-6" variant={plan.popular ? "primary" : "outline"}>
-                  انتخاب پلان
-                </Button>
+                <div className="flex flex-col gap-4 h-full">
+                  <h3 className="text-lg font-bold text-slate-200 text-center">{plan.name}</h3>
+                  <div className="text-center">
+                    <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                      {plan.price}
+                    </p>
+                    <p className="text-sm text-slate-400 mt-1">{plan.period}</p>
+                  </div>
+                  <Button className="w-full mt-auto" variant={plan.popular ? "primary" : "outline"}>
+                    انتخاب پلان
+                  </Button>
+                </div>
               </GlassCard>
             </motion.div>
           ))}
@@ -210,11 +218,12 @@ export default function HomePage() {
       </section>
 
       {/* بخش نظرات مشتریان */}
-      <section id="testimonials" className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+      <section id="testimonials" className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 mb-4">
             نظرات مشتریان
           </h2>
+          <p className="text-slate-400">مشتریان ما چه می‌گویند</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((review, idx) => (
@@ -224,22 +233,24 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
             >
-              <GlassCard className="p-6 h-full" hover>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold">
-                    {review.name.charAt(0)}
+              <GlassCard className="p-6 hover:shadow-xl transition-all duration-300" hover>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                      {review.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-200">{review.name}</h4>
+                      <p className="text-sm text-slate-400">{review.role}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-200">{review.name}</h4>
-                    <p className="text-sm text-slate-400">{review.role}</p>
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-amber-400 fill-current" />
+                    ))}
                   </div>
+                  <p className="text-slate-300 text-sm leading-relaxed">{review.text}</p>
                 </div>
-                <div className="flex gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-amber-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-slate-300 text-sm leading-relaxed">{review.text}</p>
               </GlassCard>
             </motion.div>
           ))}

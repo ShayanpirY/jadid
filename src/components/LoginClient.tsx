@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import AuthModal from "@/components/AuthModal";
 import { Logo } from "@/components/ui/logo";
-import { Shield, Sparkles, ArrowRight } from "lucide-react";
+import { Shield, Sparkles, ArrowRight, Building2 } from "lucide-react";
 
 export default function LoginClient() {
   const [authOpen, setAuthOpen] = useState(false);
@@ -45,6 +45,22 @@ export default function LoginClient() {
 
           <button
             onClick={() => setAuthOpen(true)}
+            className="w-full p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10 transition-all duration-300 text-right"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-slate-200">ورود مدیریت کسب‌وکار</h3>
+                <p className="text-sm text-slate-400">دسترسی به داشبورد کسب‌وکار</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-slate-400" />
+            </div>
+          </button>
+
+          <button
+            onClick={() => setAuthOpen(true)}
             className="w-full p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-500/50 hover:bg-white/10 transition-all duration-300 text-right"
           >
             <div className="flex items-center gap-4">
@@ -52,8 +68,8 @@ export default function LoginClient() {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-slate-200">ورود مدیر</h3>
-                <p className="text-sm text-slate-400">دسترسی به پنل مدیریت</p>
+                <h3 className="text-lg font-bold text-slate-200">ورود مدیر سیستم</h3>
+                <p className="text-sm text-slate-400">دسترسی به پنل مدیریت کل</p>
               </div>
               <ArrowRight className="w-5 h-5 text-slate-400" />
             </div>
@@ -70,9 +86,9 @@ export default function LoginClient() {
       <AuthModal
         isOpen={authOpen}
         onClose={() => setAuthOpen(false)}
-        onLoginSuccess={(role) => {
-          if (role === "ADMIN") {
-            window.location.href = "/admin/users";
+        onLoginSuccess={(role, redirectTo) => {
+          if (redirectTo) {
+            window.location.href = redirectTo;
           }
         }}
       />

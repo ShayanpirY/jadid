@@ -9,12 +9,12 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { UserRoleBadge } from "@/components/UserRoleBadge";
-import { X, Mail, Lock, Phone, User, Shield, Crown, ChevronLeft } from "lucide-react";
+import { X, Mail, Lock, Phone, User, Shield, Crown, ChevronLeft, Building2 } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-type AuthTab = "user" | "admin";
+type AuthTab = "user" | "business" | "admin";
 
 const userSchema = z.object({
   email: z.string().email("ایمیل معتبر وارد کنید"),
@@ -23,18 +23,24 @@ const userSchema = z.object({
   phone: z.string().optional(),
 });
 
+const businessSchema = z.object({
+  username: z.string().min(1, "نام کاربری را وارد کنید"),
+  password: z.string().min(1, "رمز عبور را وارد کنید"),
+});
+
 const adminSchema = z.object({
   email: z.string().email("ایمیل معتبر وارد کنید"),
   password: z.string().min(1, "رمز عبور را وارد کنید"),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
+type BusinessFormData = z.infer<typeof businessSchema>;
 type AdminFormData = z.infer<typeof adminSchema>;
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess?: (role: "ADMIN" | "PROVIDER" | "CLIENT") => void;
+  onLoginSuccess?: (role: "BUSINESS_ADMIN" | "ADMIN" | "PROVIDER" | "CLIENT", redirectTo?: string) => void;
 }
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
@@ -53,6 +59,15 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   });
 
   const {
+    register: registerBusiness,
+    handleSubmit: handleBusinessSubmit,
+    formState: { errors: businessErrors },
+    reset: resetBusiness,
+  } = useForm<BusinessFormData>({
+    resolver: zodResolver(businessSchema),
+  });
+
+  const {
     register: registerAdmin,
     handleSubmit: handleAdminSubmit,
     formState: { errors: adminErrors },
@@ -68,7 +83,23 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     setIsLoading(false);
     resetUser();
     onClose();
-    onLoginSuccess?.(data.email.includes("admin") ? "ADMIN" : "CLIENT");
+    onLoginSuccess?.("CLIENT");
+  };
+
+  const handleBusinessLogin = async (data: BusinessFormData) => {
+    setIsLoading(true);
+    setError("");
+    await new Promise((r) => setTimeout(r, 1000));
+
+    if (data.username === "shayan" && data.password === "12345") {
+      setIsLoading(false);
+      resetBusiness();
+      onClose();
+      onLoginSuccess?.("BUSINESS_ADMIN", "/dashboard");
+    } else {
+      setIsLoading(false);
+      setError("نام کاربری یا رمز عبور اشتباه است");
+    }
   };
 
   const handleAdminLogin = async (data: AdminFormData) => {
@@ -80,7 +111,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
       setIsLoading(false);
       resetAdmin();
       onClose();
-      onLoginSuccess?.("ADMIN");
+      onLoginSuccess?.("ADMIN", "/admin/dashboard");
     } else {
       setIsLoading(false);
       setError("ایمیل یا رمز عبور اشتباه است");
@@ -91,6 +122,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     setActiveTab(tab);
     setError("");
     resetUser();
+    resetBusiness();
     resetAdmin();
   };
 
@@ -140,6 +172,17 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                 >
                   <User className="w-4 h-4 inline ml-2" />
                   کاربر / ارائه‌دهنده
+                </button>
+                <button
+                  onClick={() => switchTab("business")}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                    activeTab === "business"
+                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg"
+                      : "bg-white/5 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 inline ml-2" />
+                  مدیریت کسب‌وکار
                 </button>
                 <button
                   onClick={() => switchTab("admin")}
@@ -224,6 +267,50 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                       {isLogin ? "حساب کاربری ندارید؟ ثبت‌نام کنید" : "قبلاً ثبت‌نام کرده‌اید؟ ورود"}
                     </button>
                   </div>
+                </div>
+              )}
+
+              {activeTab === "business" && (
+                <div className="space-y-5">
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-4">
+                      <Building2 className="w-8 h-8 text-cyan-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                      ورود مدیریت کسب‌وکار
+                    </h2>
+                    <p className="text-sm text-slate-400 mt-1">دسترسی به پنل مدیریت رزرو</p>
+                  </div>
+
+                  <form onSubmit={handleBusinessSubmit(handleBusinessLogin)} className="space-y-4">
+                    <div>
+                      <Label required>نام کاربری</Label>
+                      <Input
+                        {...registerBusiness("username")}
+                        placeholder="نام کاربری"
+                        error={businessErrors.username?.message}
+                      />
+                    </div>
+                    <div>
+                      <Label required>رمز عبور</Label>
+                      <Input
+                        {...registerBusiness("password")}
+                        type="password"
+                        placeholder="••••••••"
+                        error={businessErrors.password?.message}
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                        <p className="text-sm text-red-400">{error}</p>
+                      </div>
+                    )}
+
+                    <Button type="submit" className="w-full bg-gradient-to-r from-cyan-600 to-blue-600" disabled={isLoading}>
+                      {isLoading ? "در حال بررسی..." : "ورود به داشبورد کسب‌وکار"}
+                    </Button>
+                  </form>
                 </div>
               )}
 

@@ -1,13 +1,14 @@
-import { Suspense } from "react";
-import AuthModal from "@/components/AuthModal";
-import LoginClient from "@/components/LoginClient";
+"use client";
+
+import { useState } from "react";
+import LoginModal from "@/components/LoginModal";
 
 export default function LoginPage() {
+  const [modalOpen, setModalOpen] = useState(true);
+
   return (
     <div dir="rtl" className="min-h-screen bg-[#0d0e15] flex items-center justify-center p-4">
-      <Suspense fallback={<div className="text-slate-400">در حال بارگذاری...</div>}>
-        <LoginClient />
-      </Suspense>
+      <LoginModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
