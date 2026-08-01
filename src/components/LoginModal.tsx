@@ -43,13 +43,16 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 relative shadow-2xl">
-        
-        <button onClick={onClose} className="absolute top-4 left-4 text-slate-400 hover:text-white">
-          ✕
-        </button>
-
-        <h2 className="text-xl font-bold text-center text-white mb-6">ورود مدیریت کسب‌وکار</h2>
+      <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-2xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-white">ورود به داشبورد</h2>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white text-xl font-bold transition-colors"
+          >
+            ✕
+          </button>
+        </div>
 
         {error && (
           <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl text-center">
@@ -59,26 +62,32 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">نام کاربری *</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              نام کاربری
+            </label>
             <input
               type="text"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-fuchsia-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-fuchsia-500 transition-colors"
+              placeholder="نام کاربری خود را وارد کنید"
               dir="ltr"
               autoComplete="off"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">رمز عبور *</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              رمز عبور
+            </label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-fuchsia-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-fuchsia-500 transition-colors"
+              placeholder="••••••••"
               dir="ltr"
               autoComplete="new-password"
             />
@@ -87,12 +96,11 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-800 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-fuchsia-600/20 text-sm mt-2"
+            className="w-full py-2.5 bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-800 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-fuchsia-600/20 text-sm"
           >
             {loading ? "در حال ورود..." : "ورود به داشبورد کسب‌وکار"}
           </button>
         </form>
-
       </div>
     </div>
   );

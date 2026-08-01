@@ -143,3 +143,21 @@ export const JALALI_MONTHS = [
   "بهمن",
   "اسفند",
 ];
+
+export function getBookingLink(slug: string, client?: string): string {
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://jadid-delta.vercel.app";
+  if (!client || client.trim() === "") {
+    return `${baseUrl}/book/${encodeURIComponent(slug)}`;
+  }
+  return `${baseUrl}/book/${encodeURIComponent(slug)}?client=${encodeURIComponent(client)}`;
+}
+
+export function getClientBookingLink(slug: string, clientName: string): string {
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://jadid-delta.vercel.app";
+  const clientSlug = clientName
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\u0600-\u06FFa-z0-9-]/g, "")
+    .slice(0, 40);
+  return `${baseUrl}/book/${encodeURIComponent(slug)}?client=${encodeURIComponent(clientSlug)}`;
+}

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Logo } from "@/components/ui/logo";
 import { CalendarDays, Sparkles, Clock, Shield, Smartphone, Star, ArrowRight } from "lucide-react";
-import AuthModal from "@/components/AuthModal";
+import Navbar from "@/components/Navbar";
 
 const features = [
   {
@@ -71,46 +71,9 @@ const testimonials = [
 ];
 
 export default function HomePage() {
-  const [authOpen, setAuthOpen] = useState(false);
-
   return (
     <main dir="rtl" className="min-h-screen bg-[#0d0e15] text-white">
-      {/* هدر */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0d0e15]/80 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <Logo size="sm" />
-              <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
-                نوبت رو
-              </span>
-            </div>
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-              <a href="#features" className="hover:text-purple-400 transition-colors">ویژگی‌ها</a>
-              <a href="#pricing" className="hover:text-purple-400 transition-colors">اشتراک</a>
-              <a href="#testimonials" className="hover:text-purple-400 transition-colors">نظرات</a>
-            </div>
-            <div className="flex items-center gap-3">
-              <a href="/demo">
-                <Button size="sm" variant="ghost" className="hidden sm:inline-flex">
-                  دموی نوبت‌گیری
-                </Button>
-              </a>
-              <a href="/dashboard">
-                <Button size="sm" variant="ghost" className="hidden sm:inline-flex">
-                  ورود مستقیم به داشبورد (تست)
-                </Button>
-              </a>
-              <Button size="sm" variant="ghost" onClick={() => setAuthOpen(true)} className="hidden sm:inline-flex">
-                ورود / ثبت‌نام
-              </Button>
-              <Button size="sm" className="shadow-lg shadow-purple-500/30">
-                شروع رایگان
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* بخش معرفی Hero */}
       <section className="max-w-7xl mx-auto pt-16 pb-20 px-4 sm:px-6 lg:px-8">
@@ -283,16 +246,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-
-      <AuthModal
-        isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
-        onLoginSuccess={(role) => {
-          if (role === "ADMIN") {
-            window.location.href = "/admin/users";
-          }
-        }}
-      />
     </main>
   );
 }

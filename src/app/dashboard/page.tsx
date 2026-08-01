@@ -30,8 +30,8 @@ import {
   ChevronLeft,
   Building2,
   Users,
-  Link as LinkIcon,
 } from "lucide-react";
+import BookingLinkCard from "@/components/BookingLinkCard";
 
 type Tab = "appointments" | "settings" | "subscription";
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -101,11 +101,9 @@ export default function BusinessDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>(MOCK_APPOINTMENTS);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | AppointmentStatus>("ALL");
-  const [copied, setCopied] = useState(false);
 
   const businessName = "مجموعه شایان";
   const slug = "shayan";
-  const bookingUrl = `https://jadid-delta.vercel.app/book/${slug}`;
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter((apt) => {
@@ -129,12 +127,6 @@ export default function BusinessDashboard() {
       { label: "روزهای باقی‌مانده", value: "۳۶۵", icon: <Crown className="w-5 h-5" />, color: "emerald" },
     ];
   }, [appointments]);
-
-  const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(bookingUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleApprove = (id: string) => {
     setAppointments((prev) =>
@@ -178,38 +170,7 @@ export default function BusinessDashboard() {
         </div>
 
         {/* Booking Link Card */}
-        <GlassCard className="p-6 mb-8 border-purple-500/20">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400">
-              <LinkIcon className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-200">لینک اختصاصی رزرو</h3>
-              <p className="text-sm text-slate-400">این لینک را به مشتریان خود بدهید تا نوبت خود را ثبت کنند</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Globe className="w-5 h-5 text-purple-400 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm text-slate-200 font-mono truncate">{bookingUrl}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="secondary" onClick={copyToClipboard} className="flex items-center gap-2">
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copied ? "کپی شد" : "کپی لینک"}
-              </Button>
-              <a href={bookingUrl} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" variant="ghost" className="flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4" />
-                  مشاهده
-                </Button>
-              </a>
-            </div>
-          </div>
-        </GlassCard>
+        <BookingLinkCard businessSlug={slug} businessName={businessName} defaultClient="amir" />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
