@@ -14,6 +14,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { JalaliCalendar } from "@/components/ui/jalali-calendar";
 import { cn, generateTimeSlots, getTodayJalali, JALALI_MONTHS } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
+import BookingDemoModal from "@/components/BookingDemoModal";
 
 type ViewMode = "client" | "provider";
 type BookingState = "normal" | "fully_booked" | "expired";
@@ -78,6 +79,7 @@ export default function DemoPage() {
   const [bookingComplete, setBookingComplete] = useState(false);
   const [trackingCode, setTrackingCode] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
 
   const today = getTodayJalali();
   const availableSlots = useMemo(() => {
@@ -205,6 +207,11 @@ export default function DemoPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6 flex justify-end">
+          <Button onClick={() => setDemoModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-pink-600">
+            دموی رزرو سریع
+          </Button>
+        </div>
         <AnimatePresence mode="wait">
           {viewMode === "client" ? (
             <motion.div
@@ -716,6 +723,8 @@ export default function DemoPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <BookingDemoModal isOpen={demoModalOpen} onClose={() => setDemoModalOpen(false)} />
     </div>
   );
 }

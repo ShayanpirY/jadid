@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Logo } from "@/components/ui/logo";
 import { CalendarDays, Sparkles, Clock, Shield, Smartphone, Star, ArrowRight } from "lucide-react";
+import AuthModal from "@/components/AuthModal";
 
 const features = [
   {
@@ -69,6 +71,8 @@ const testimonials = [
 ];
 
 export default function HomePage() {
+  const [authOpen, setAuthOpen] = useState(false);
+
   return (
     <main dir="rtl" className="min-h-screen bg-[#0d0e15] text-white space-y-24 py-12 px-4 md:px-8">
       {/* هدر */}
@@ -92,6 +96,9 @@ export default function HomePage() {
                   دموی نوبت‌گیری
                 </Button>
               </a>
+              <Button size="sm" variant="ghost" onClick={() => setAuthOpen(true)} className="hidden sm:inline-flex">
+                ورود / ثبت‌نام
+              </Button>
               <Button size="sm" className="shadow-lg shadow-purple-500/30">
                 شروع رایگان
               </Button>
@@ -260,6 +267,16 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      <AuthModal
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onLoginSuccess={(role) => {
+          if (role === "ADMIN") {
+            window.location.href = "/admin/users";
+          }
+        }}
+      />
     </main>
   );
 }
