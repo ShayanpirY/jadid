@@ -70,7 +70,7 @@ export default function AmirDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>(MOCK_APPOINTMENTS);
   const [copied, setCopied] = useState(false);
 
-  const bookingUrl = "https://shayanreserve.com/booking/amir";
+  const bookingUrl = "https://jadid-delta.vercel.app/booking/amir";
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(bookingUrl);
